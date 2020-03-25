@@ -43,14 +43,15 @@ def each_element_of_tensor_result(dataset, weights):
     result = dataset.copy()
     layers = [relu for i in range(len(weights) - 1)]
     layers.append(sigmoid)
-    for w in range(len(weights)):
-        step_result = np.zeros((len(result), len(weights[w][1])))
+    for weight in range(len(weights)):
+        len_current_weight = len(weights[weight][1])
+        step_result = np.zeros((len(result), len_current_weight))
         for i in range(len(result)):
-            for j in range(len(weights[w][1])):
+            for j in range(len_current_weight):
                 sum = 0
                 for k in range(len(result[i])):
-                    sum += result[i][k] * weights[w][0][k][j]
-                step_result[i][j] = layers[w](sum + weights[w][1][j])
+                    sum += result[i][k] * weights[weight][0][k][j]
+                step_result[i][j] = layers[weight](sum + weights[weight][1][j])
         result = step_result
     return result
 
@@ -70,11 +71,32 @@ def smart_print(model, dataset):
     print(each_el)
     print("Результат прогона через обученную модель:")
     print(model_res)
+    print('Predict')
+    #print(model.predict(np.array([[1,1,1]])))
+
+
+def custom_print(model):
+    weights = [layer.get_weights() for layer in model.layers]
+    def a(x):
+        print(x[0][0])
+        return 1 if x[0][0] > .5 else 0
+    datas = [
+        np.array([[1, 1, 1]]),
+        np.array([[1, 0, 1]]),
+        np.array([[0, 0, 1]])
+    ]
+    for data in datas:
+        print('------START ITERATION {}-------'.format(data))
+        print('Keras model:', a(model.predict(data)))
+        print('Tensor model:', a(tensor_result(data, weights)))
+        print('each element:', a(each_element_of_tensor_result(data, weights)))
+        print('----END ITERATION------')
 
 
 def create_model():
     model = Sequential()
     model.add(Dense(5, activation='relu', input_shape=(3,)))
+    model.add(Dense(5, activation='relu'))
     model.add(Dense(4, activation='relu'))
     model.add(Dense(1, activation='sigmoid'))
     model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
@@ -82,8 +104,7 @@ def create_model():
 
 
 def fit_model(model, train, validation):
-    return model.fit(train, validation, epochs=1, batch_size=1)  # нет разницы от кол-во эпох, все равно потом берутся
-                                                                 # ее же слои
+    return model.fit(train, validation, epochs=150, batch_size=1)  # нет разницы от кол-во эпох, все равно потом берутся ее же слои
 
 
 def start():
@@ -92,11 +113,14 @@ def start():
     model = create_model()
     print('NOT fitting')
     smart_print(model, train_data)
+    custom_print(model)
     print('fitting')
     fit_model(model, train_data, validation_data)
     smart_print(model, train_data)
+    custom_print(model)
+    print(get_matrix_truth())
+    print(result_of_matrix())
 
 
 if __name__ == '__main__':
     start()
-
