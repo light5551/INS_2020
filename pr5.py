@@ -1,8 +1,10 @@
-from keras.layers import Input, Embedding, LSTM, Dense, Flatten
-from keras.models import Model, Sequential
-import numpy as np
+import collections
 import csv
+
 import matplotlib.pyplot as plt
+import numpy as np
+from keras.layers import Input, Dense
+from keras.models import Model, Sequential
 
 DIM_DATASET = 6
 SIZE_TRAINING_DATASET = 300
@@ -12,10 +14,10 @@ SIZE_TEST_DATASET = 60
 def write_csv(path, data):
     with open(path, 'w', newline='') as file:
         my_csv = csv.writer(file, delimiter=',', quoting=csv.QUOTE_MINIMAL)
-        try:
+        if isinstance(data, collections.Iterable) and isinstance(data[0], collections.Iterable):
             for i in data:
                 my_csv.writerow(i)
-        except:
+        else:
             my_csv.writerow(data)
 
 
@@ -49,10 +51,9 @@ def create_objects():
     main_input = Input(shape=(DIM_DATASET,), name='main_input')
     encoded = Dense(60, activation='relu')(main_input)
     encoded = Dense(60, activation='relu')(encoded)
-    encoded = Dense(60, activation='relu')(encoded)
-    encoded = Dense(3, activation='linear')(encoded)
+    encoded = Dense(6, activation='linear')(encoded)
 
-    input_encoded = Input(shape=(3,), name='input_encoded')
+    input_encoded = Input(shape=(6,), name='input_encoded')
     decoded = Dense(35, activation='relu', kernel_initializer='normal')(input_encoded)
     decoded = Dense(60, activation='relu')(decoded)
     decoded = Dense(60, activation='relu')(decoded)
@@ -60,7 +61,6 @@ def create_objects():
 
     # for regression
     predicted = Dense(64, activation='relu', kernel_initializer='normal')(encoded)
-    predicted = Dense(64, activation='relu')(predicted)
     predicted = Dense(64, activation='relu')(predicted)
     predicted = Dense(64, activation='relu')(predicted)
     predicted = Dense(1, name="out_main")(predicted)
@@ -98,7 +98,7 @@ encoded, decoded, full_model, main_input = create_objects()
 keras_model = build_model()
 keras_model.compile(optimizer='adam', loss='mse', metrics=['mae'])
 H = keras_model.fit(x_train, y_train,
-                    epochs=50,
+                    epochs=45,
                     batch_size=2,
                     verbose=1,
                     validation_data=(x_test, y_test))
@@ -106,8 +106,8 @@ H = keras_model.fit(x_train, y_train,
 loss = H.history['loss']
 v_loss = H.history['val_loss']
 
-plt.plot(range(1, 51), loss, 'b', label='train')
-plt.plot(range(1, 51), v_loss, 'r', label='validation')
+plt.plot(range(1, 46), loss, 'b', label='train')
+plt.plot(range(1, 46), v_loss, 'r', label='validation')
 plt.title('loss')
 plt.ylabel('loss')
 plt.xlabel('epochs')
@@ -117,7 +117,6 @@ plt.clf()
 ################################
 
 #### my regr model #############
-print()
 full_model.compile(optimizer="adam", loss="mse", metrics=['mae'])
 H = full_model.fit(x_train, y_train,
                    epochs=50,
@@ -127,7 +126,7 @@ H = full_model.fit(x_train, y_train,
 
 encoded_data = encoded.predict(x_test)
 decoded_data = decoded.predict(encoded_data)
-
+regr = full_model.predict(x_test)
 loss = H.history['loss']
 v_loss = H.history['val_loss']
 x = range(1, 51)
@@ -147,6 +146,7 @@ write_csv('./x_test.csv', x_test)
 write_csv('./y_test.csv', y_test)
 write_csv('./encoded.csv', encoded_data)
 write_csv('./decoded.csv', decoded_data)
+write_csv('./regr.csv', regr)
 
 # save models
 decoded.save('decoder.h5')
