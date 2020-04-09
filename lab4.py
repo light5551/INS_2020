@@ -78,7 +78,7 @@ for optimizer in OPTIMIZERS:
     test_loss, test_acc = model.evaluate(test_images, test_labels)
     create_graphic(H, optimizer.name)
     answer[optimizer.name] = test_acc
-    prediction_model[optimizer.name] = predict_image(model, upload_image('./testimage.png'))
+    prediction_model[optimizer.name] = predict_image(model, upload_image('./testimage.jpg'))
     model = build_model()
 
 for i in answer.keys():
