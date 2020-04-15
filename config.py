@@ -1,0 +1,3 @@
+BATCH_SIZE = 5
+EPOCHS = 15
+
