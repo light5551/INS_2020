@@ -8,7 +8,7 @@ class CB(Callback):
         self.epoch = epoch
         self.prefix = prefix
 
-    def on_epoch_end(self, epoch, logs=None):
+    def on_epoch_end(self, epoch, logs):
         now = datetime.now().strftime('%m-%d')
         if epoch in self.epoch:
             self.model.save("{}_{}_{}".format(now, self.prefix, epoch))
