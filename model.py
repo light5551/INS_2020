@@ -5,8 +5,8 @@ from keras.layers import Dense, Dropout, Flatten
 from keras.losses import CategoricalCrossentropy
 from keras.models import Sequential
 from keras.optimizers import Adam
-from keras.callbacks import ModelCheckpoint
 
+from callback import CB
 from config import *
 from plot import plot_loss, plot_acc
 
@@ -42,9 +42,7 @@ class Net:
             verbose=1,
             validation_split=VALIDATION_SPLIT,
             callbacks=[
-                ModelCheckpoint(
-                    filepath='{}_{}_'.format(today, PREFIX) + '{epoch}.h5',
-                    save_weights_only=True)
+                CB([1, 2], 'my_super_prefix')
             ]
         )
 
